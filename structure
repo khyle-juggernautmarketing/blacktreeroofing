@@ -1,0 +1,105 @@
+You are a Staff Frontend Engineer specializing in high-performance React architectures, technical SEO implementation, and mobile conversion optimization. 
+
+Rebuild the structural density of the attached layout file "reference_website.jpg" into our local "blacktree" project workspace. Generate clean, modular, fully typed functional React components inside `/src/components/` and import them sequentially into a clean `/src/App.jsx`.
+
+### 📱 MOBILE-FIRST & CONVERSION OPTIMIZATION ARCHITECTURE
+- Mobile Core Web Vitals: Ensure all interactive components use proper touch targets (minimum 48x48px clickable area) with dynamic spacing (`space-y-4 md:space-y-0`). Prevent any horizontal layout overflow (`overflow-hidden` on parent containers).
+- Interactive Elements on Mobile: Elements like the Before/After range slider and multi-step form must listen to touch events natively (`onTouchStart`, `onTouchMove`) without causing viewport scrolling lag.
+- Typography Responsiveness: Scale text dynamically using fluid utilities (`text-3xl sm:text-4xl lg:text-6xl`) to guarantee zero text-clipping on smaller mobile devices.
+
+### 🔍 TECHNICAL SEO INJECTION
+- Semantic HTML Mapping: Use strict semantic structures rather than generic divs (e.g., `<main>`, `<section id="...">`, `<header>`, `<nav>`, `<footer>`). 
+- Heading Hierarchy: Enforce a strict single `<h1>` tag in the hero component, `<h2>` tags for section titles, and `<h3>` tags for cards to ensure clean search crawler indexation.
+- Image & Alt Tag Safety: Ensure all localized images or vector fallback structures utilize mandatory semantic `alt` descriptive tags and ARIA labels.
+
+### 🎨 DESIGN TOKENS, BRAND CONFIGURATION & LAYOUT RESTRECTIONS
+- Core Canvas Theme: Use a premium background canvas of Slate-50 (`bg-slate-50`), body text in Slate-900 (`text-slate-900`), and pure White (`#FFFFFF`) for structural element section cards.
+- Brand Accent Token: Utilize color code #48D1CC (Medium Turquoise). Configure this directly within the inline classes or map it dynamically using the arbitrary color system `[#48D1CC]`. Every major CTA button background, interactive multi-step selection border/state, list bullet checkmark, and decorative icon wrapper must strictly employ this turquoise branding color.
+- Layout Restructuring (Structural Shift): Do NOT create a direct clone of the reference image's stack sequencing. Intentionally position the 'Why Choose Black Tree Roofing' structural comparison matrix block directly ABOVE the 'Complete Roofing Solutions' services array panel. Apply an alternating zig-zag visual layout scheme across all row presentations.
+
+### 🧱 COMPONENT SPECIFICATION BLUEPRINTS
+
+#### 1. Navbar.jsx (SEO-Semantic Navigation Header)
+- Code a sticky, fixed `<header>` wrapper tracking scroll state. Include a desktop `nav` bar that collapses into a highly visible hamburger mobile slide-out overlay.
+- Top Announcement Strip: Feature a high-visibility text ribbon: "🌲 Serving the Treasure Valley & Surrounding Areas — Call Today: (208) 555-0190".
+- Accessibility: Wrap the brand logo text in a semantic anchor tag and apply descriptive ARIA tracking parameters to the primary click-to-dial interactive tracking header buttons.
+
+#### 2. Hero.jsx (Above-The-Fold Matrix Grid & H1 Injection)
+- Construct a grid framework mapping out layout assets cleanly (`grid grid-cols-1 lg:grid-cols-12 gap-8 items-center max-w-7xl mx-auto px-4 py-12`).
+- Left Column (Span 7 Columns): Include:
+  - Sub-headline: "Quality You Can Trust" (styled using small uppercase semibold text tracking).
+  - Main Display Headline: `<h1>` element reading: "Protect Your Home With the Treasure Valley’s Most Trusted Roofing Experts" (font-extrabold text-3xl sm:text-4xl lg:text-6xl tracking-tight).
+  - Supporting Copy: "Get a fast roof inspection, reliable repair quote, or full replacement estimate from local professionals who care."
+  - Value Props List: Output 3 clean vertical layout elements featuring Lucide `CheckCircle2` vector components colored in brand turquoise (#48D1CC) for: "Free Inspections & Estimates", "Premium Warranties Included", and "Exceptional Local Craftsmanship".
+  - Social Proof Array: Build a rating stack component rendering 5 filled stars alongside text reading "4.9/5 Rating from 100+ happy homeowners".
+- Right Column (Span 5 Columns): Mount the high-fidelity state-managed interactive questionnaire engine container (`LeadForm.jsx`).
+
+#### 3. LeadForm.jsx (Mobile-Optimized Multi-Step Funnel Component)
+- Program a clean, multi-step state routine machine using index pointers (`const [step, setStep] = useState(1);`).
+- Add a visual progress tracker bar at the top of the container card calculated automatically relative to the state scale.
+- Step 1 (Services Grid): Single choice selectable layout grid for:
+  - [ ] Roof Replacement
+  - [ ] Roof Repair
+  - [ ] Roof Maintenance
+  - [ ] Real Estate or Insurance Inspection
+  - Apply custom hover and mobile tap transitions: `hover:border-[#48D1CC] active:bg-slate-100 border-2 bg-white transition-all cursor-pointer rounded-xl p-4`. Minimum tap size must be 48px.
+- Step 2 (Timeline Grid): Single choice options displaying:
+  - [ ] ASAP / Emergency
+  - [ ] Within 1–2 Weeks
+  - [ ] Just Researching / Planning Ahead
+- Step 3 (Context Capture): Include a text area input capturing optional descriptive notes: "Tell us about your project (Optional)".
+- Step 4 (Contact Form Fields): Fully responsive inline configuration field layout containing: First Name, Last Name, Email, Phone, and Zip Code.
+- Navigation Deck: Render "Back" buttons on steps 2-4. Handle transition logic cleanly. Ensure step-4 submit triggers standard synthetic `preventDefault()` handling, prints out a diagnostic console group trace logs of all captured user strings, and toggles into a success confirmation message UI with check animation graphics.
+
+#### 4. Comparison.jsx (SEO Keyword Rich Interactive Matrix Grid)
+- Build out the detailed horizontal side-by-side performance matrix matching the layout criteria:
+  - Section Header Title: `<h2>` element reading: "Why Choose Black Tree Roofing?"
+  - Sub-title: "See the difference true quality, communication, and warranties make."
+- Render a responsive table or mobile-first flex-stack array contrasting "Black Tree Roofing" directly against a generic "Other Roofers" baseline. On mobile layouts, allow for responsive horizontal scrolling or transform the grid into stacked comparative text chunks to maintain perfect layout symmetry.
+- Table Row Configurations:
+  - Row 1: "Free Roof Inspections" VS "Paid Inspections & Hidden Fees"
+  - Row 2: "Peace of Mind Warranties Included" VS "No Structural or Material Coverage"
+  - Row 3: "Communicative & Clear Timelines" VS "'We'll be back next week' Nonsense"
+  - Row 4: "Exceptional Craftsmanship & Top-Tier Materials" VS "Subpar Materials & Cut Corners"
+  - Row 5: "Cleans Up Every Mess Before Leaving" VS "Leaves Debris & Nails in Your Yard"
+- Visual Highlights Layer: Isolate the "Black Tree Roofing" grid column wrap with an explicit elevated depth shadow, rounded borders, and an active outline border (`shadow-xl border-2 border-[#48D1CC]/50 relative bg-white`). Mark all Black Tree items with matching turquoise checked icons and standard negative red indicator flags for the generic column layout.
+
+#### 5. Services.jsx (Staggered Solutions Engine)
+- Render the complete core services layout stack block using an explicit alternating layout configuration flow:
+  - Row 1 (Inspections & Maintenance): Copy left, structured placeholder graphics container right. 
+    - Text: "Comprehensive evaluations to spot hidden leaks and structural issues before they become costly emergencies. Perfect for real estate or insurance claims." 
+    - Button: "Schedule Free Inspection"
+  - Row 2 (Roof Repairs): Placeholder graphics container left, copy right.
+    - Text: "Fast, reliable repairs for leaks, missing shingles, wind damage, and flashing issues. We fix it right the first time to keep your home dry."
+    - Button: "Schedule Repair"
+  - Row 3 (Full Roof Replacement): Copy left, placeholder graphics container right.
+    - Text: "Upgrade your property’s protection and curb appeal. We use top-tier materials and expert installation tailored to your specific budget."
+    - Button: "Get Replacement Quote"
+- Mobile Responsiveness: On mobile devices, the rows should flatten natively into a logical top-down layout (Image first, text second).
+- Asset Protection Fallback: For image assets, safely track standard background elements. If local file assets are missing from `/public/`, generate beautifully stylized geometric vector graphics wireframes (`bg-slate-200 animate-pulse rounded-2xl flex items-center justify-center h-64`) outputting contextual Lucide icon types centered in mid-frame layout boundaries.
+
+#### 6. BeforeAfter.jsx (Touch-Responsive Drag Slider Module)
+- Program a fully functional input slider component allowing split visual layer clipping toggles across touch and mouse events.
+- Setup a parent structural node wrap containing absolute layered frames. Manage the visibility tracking parameters via a basic range element controller (`<input type="range" min="0" max="100" value={sliderVal} onChange={(e) => setSliderVal(e.target.value)} className="absolute inset-0 opacity-0 w-full h-full cursor-ew-resize z-30" />`). Ensure the drag handle tracking mechanism operates fluidly on iOS and Android devices without breaking container borders.
+- Left layer clips the source view tracking absolute percentages: `style={{ clipPath: \`polygon(0 0, \${sliderVal}% 0, \${sliderVal}% 100%, 0 100%)\` }}`.
+- Layer Backgrounds: Reference local source links `/assets/before.jpg` and `/assets/after.jpg`. Include dual structural linear background fallback gradient containers (`bg-gradient-to-r from-slate-300 to-slate-400`) within image frames so elements remain presentation-ready if asset paths are empty.
+- Render a vertical divider line element track overlay matching current `sliderVal` states capped with a double arrow center indicator handle button wrapper.
+
+#### 7. Testimonials.jsx & GeoTargeting.jsx (Local SEO Optimization Module)
+- Structural Testimonials Module: Map card loops using real customer feedback records:
+  - Review Card 1 (George B.): "Let's get real for a moment, most of us don't get excited about a new roof, until there's an issue. Black Tree Roofing made the whole process manageable. No frustration, no mess, and no 'we'll be back next week' nonsense..."
+  - Review Card 2 (Tammi S.): "The team at Black Tree Roofing demonstrated exceptional expertise, taking the time to explain every step of the project... They adhered to the timeline provided, maintained a clean work environment, and were always available for communication..."
+- Stylize using elegant typography configurations, container shadows, and gold star icon rows (`text-amber-400`).
+- Geo-Targeting Module Stack (Local SEO Booster): Setup an organized geo breakout area array mapping each Treasure Valley localization keyword cleanly:
+  - Tokens: ["Nampa", "Middleton", "Parma", "Payette", "Emmett", "New Plymouth", "Letha", "Black Canyon", "Horseshoe Bend", "Meridian", "Eagle", "Garden City", "Hidden Springs", "Boise", "Star", "Kuna"]
+  - Map loop layout structure: `flex wrap gap-2 justify-center max-w-4xl mx-auto mt-6`.
+  - Chip Class Wrapper: `bg-slate-200/70 text-slate-800 rounded-full py-1.5 px-4 text-sm font-medium hover:bg-[#48D1CC]/20 transition-all duration-200 cursor-default`.
+
+#### 8. Footer.jsx (4-Column Layout Distribution Deck)
+- Establish an organized layout footprint using a semantic `<footer>` element mapping out metadata loops cleanly: `grid grid-cols-1 md:grid-cols-4 gap-8 bg-slate-900 text-slate-300 py-12 px-4`.
+- Column 1 (Brand Profile): Output 'Black Tree Roofing' logo element and mission line: "Providing reliable, high-quality roofing solutions designed to protect your most valuable investment and enhance its value."
+- Column 2 (Quick Nav Arrays): Map text navigation link pointers pointing cleanly to target landing components.
+- Column 3 (Comprehensive Service Trackers): Render link arrays for Roof Inspections, Repairs, Replacement, and Maintenances.
+- Column 4 (Operational Details Deck): Display explicit tabular hours details ("Mon–Fri: 7AM–6PM | Sat: By Appointment") along with standard click-to-call links and privacy policies.
+
+Execute all code generation cycles cleanly, ensure compliance with standard web responsiveness rules, and save all updated target dependencies immediately. Do not include uncompleted components or empty strings.
