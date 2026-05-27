@@ -1,0 +1,9 @@
+# Must match your Cloudflare Workers / Pages project name (blacktreeroofing).
+name = "blacktreeroofing"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Self-reference for Next.js on Workers (ISR/revalidation). Service must match `name` above.
+[[services]]
+binding = "WORKER_SELF_REFERENCE"
+service = "blacktreeroofing"
