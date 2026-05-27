@@ -38,7 +38,7 @@ Or manually: `lsof -nP -iTCP:3000 -sTCP:LISTEN`, stop that PID, then `npm run de
 
 4-step funnel posts to your server route `POST /api/lead`, which forwards to n8n with a **short-lived JWT** (`Authorization: Bearer …`).
 
-Set in `.env.local` (and in **Cloudflare Pages → Environment variables** for production):
+Set in `.env.local` (and in **Vercel → Project → Settings → Environment Variables** for production):
 
 | Variable | Description |
 |----------|-------------|
@@ -79,3 +79,7 @@ Correct remote URL (not `https://github.com` alone):
 npm run build
 npm start
 ```
+
+## Deploy (Vercel)
+
+Connect the GitHub repo in [Vercel](https://vercel.com). Use the default Next.js settings (`npm run build`, output `.next`). Add `N8N_WEBHOOK_URL` and `N8N_JWT_SECRET` in the project environment variables for Production (and Preview if you test the lead form there).
