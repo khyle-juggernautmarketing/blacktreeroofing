@@ -10,7 +10,6 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://blacktreeroofing.com'),
-  icons: { icon: '/favicon.svg' },
   title: 'Black Tree Roofing | Treasure Valley Roof Repair & Replacement',
   description:
     'Trusted Treasure Valley roofing experts for free inspections, repairs, replacements, and storm damage. Licensed local pros with premium warranties.',
