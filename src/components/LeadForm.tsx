@@ -122,6 +122,7 @@ export function LeadForm() {
   const [data, setData] = useState<LeadFormData>(initialLeadForm)
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
+  const [honeypot, setHoneypot] = useState('')
   const stepAdvanceDelayMs = useStepAdvanceDelay()
 
   const progress = (step / STEPS.length) * 100
@@ -171,6 +172,7 @@ export function LeadForm() {
       ...data,
       fullName: data.fullName.trim(),
       email: data.email.trim(),
+      website: honeypot,
     }
     setStatus('loading')
     try {
@@ -287,6 +289,18 @@ export function LeadForm() {
           )}
           {step === 4 && (
             <form onSubmit={submit} className="space-y-4">
+              <label className="sr-only" aria-hidden>
+                Website
+                <input
+                  type="text"
+                  name="website"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  className="hidden"
+                />
+              </label>
               <label className="block">
                 <span className="mb-1.5 block text-xs font-semibold text-slate-600">Full name</span>
                 <input

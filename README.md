@@ -34,9 +34,27 @@ Or manually: `lsof -nP -iTCP:3000 -sTCP:LISTEN`, stop that PID, then `npm run de
 
 **Minified React error #418 (hydration)?** The HTML from the server did not match the browser’s first render. Common causes: Framer Motion animating before hydration finishes, or **Cursor’s embedded browser / preview** altering the DOM (you may see `[CursorBrowser] Native dialog overrides` in the console). Open **http://127.0.0.1:3000** in Chrome, Safari, or Firefox to verify the site outside the embedded browser.
 
-## Lead form
+## Lead form & n8n webhook
 
-4-step funnel posts to n8n via `POST /api/lead`. Set `N8N_WEBHOOK_URL` in `.env.local`.
+4-step funnel posts to your server route `POST /api/lead`, which forwards to n8n with a **short-lived JWT** (`Authorization: Bearer …`).
+
+Set in `.env.local` (and in **Cloudflare Pages → Environment variables** for production):
+
+| Variable | Description |
+|----------|-------------|
+| `N8N_WEBHOOK_URL` | Your n8n webhook URL |
+| `N8N_JWT_SECRET` | JWT auth secret from n8n (HS256) — **never commit this** |
+
+Copy from `.env.local.example` and fill in real values locally only.
+
+### Security (built-in)
+
+- JWT-signed webhook calls (secret stays server-side)
+- Input validation, length limits, enum checks
+- Honeypot field on the form (bot trap)
+- Per-IP rate limiting on `/api/lead`
+- Security headers (CSP, HSTS, `X-Frame-Options`, etc.)
+- Webhook URL removed from source — env-only
 
 ## Push to GitHub (first time)
 
@@ -61,4 +79,3 @@ Correct remote URL (not `https://github.com` alone):
 npm run build
 npm start
 ```
-# blacktreeroofing
