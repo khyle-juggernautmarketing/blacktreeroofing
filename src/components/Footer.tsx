@@ -9,7 +9,7 @@ export function Footer() {
     <footer className="bg-slate-950 px-4 py-16 text-slate-400">
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 md:grid-cols-4 md:gap-10">
         <div>
-          <div className="relative mb-4 h-14 w-40">
+          <div className="relative mb-4 h-16 w-48 sm:h-[4.5rem] sm:w-56">
             <Image
               src="/Logo.png"
               alt="Black Tree Roofing"

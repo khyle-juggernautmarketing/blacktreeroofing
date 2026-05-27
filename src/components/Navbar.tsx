@@ -53,7 +53,7 @@ export function Navbar() {
         } text-white`}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
-          <Link href="#" className="relative h-12 w-36 shrink-0 sm:w-44" aria-label="Black Tree Roofing home">
+          <Link href="#" className="relative h-16 w-48 shrink-0 sm:h-[4.5rem] sm:w-56" aria-label="Black Tree Roofing home">
             <Image
               src="/Logo.png"
               alt="Black Tree Roofing LLC — Rooted in Quality"
