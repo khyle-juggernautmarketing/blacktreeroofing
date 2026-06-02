@@ -34,6 +34,7 @@ export interface LeadFormData {
   fullName: string
   email: string
   phone: string
+  address: string
 }
 
 export const initialLeadForm: LeadFormData = {
@@ -43,4 +44,5 @@ export const initialLeadForm: LeadFormData = {
   fullName: '',
   email: '',
   phone: '',
+  address: '',
 }

@@ -219,8 +219,12 @@ export function LeadForm() {
   const submitDetails = (e: FormEvent) => {
     e.preventDefault()
     setErrorMsg('')
-    if (!data.fullName.trim() || !data.email.trim() || !data.phone.trim()) {
+    if (!data.fullName.trim() || !data.email.trim() || !data.phone.trim() || !data.address.trim()) {
       setErrorMsg('Please fill in all fields.')
+      return
+    }
+    if (data.address.trim().length < 5) {
+      setErrorMsg('Please enter a valid property address.')
       return
     }
     const phoneDigits = data.phone.replace(/\D/g, '')
@@ -238,6 +242,7 @@ export function LeadForm() {
       ...data,
       fullName: data.fullName.trim(),
       email: data.email.trim(),
+      address: data.address.trim(),
       website: honeypot,
     }
 
@@ -386,6 +391,17 @@ export function LeadForm() {
                   autoComplete="tel"
                   value={data.phone}
                   onChange={(e) => setData({ ...data, phone: e.target.value })}
+                  className="min-h-12 w-full rounded-xl border border-slate-200 bg-white/90 px-4 text-base backdrop-blur-sm focus:border-[#48D1CC] focus:outline-none focus:ring-2 focus:ring-[#48D1CC]/25 sm:text-sm"
+                />
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-semibold text-slate-600">Property address</span>
+                <input
+                  required
+                  autoComplete="street-address"
+                  value={data.address}
+                  onChange={(e) => setData({ ...data, address: e.target.value })}
+                  placeholder="Street, city, state, ZIP"
                   className="min-h-12 w-full rounded-xl border border-slate-200 bg-white/90 px-4 text-base backdrop-blur-sm focus:border-[#48D1CC] focus:outline-none focus:ring-2 focus:ring-[#48D1CC]/25 sm:text-sm"
                 />
               </label>

@@ -53,7 +53,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: validated.error }, { status: 400 })
     }
 
-    const { fullName, email, phone, service, propertyType, timeline } = validated.data
+    const { fullName, email, phone, address, service, propertyType, timeline } = validated.data
     const { firstName, lastName } = splitFullName(fullName)
 
     if (validated.mode === 'appointment' && validated.appointment) {
@@ -77,6 +77,7 @@ export async function POST(request: Request) {
       lastName,
       email,
       phone,
+      address,
       source: 'blacktree-landing',
       submittedAt: new Date().toISOString(),
       submissionType: validated.mode,

@@ -13,6 +13,7 @@ export type WebhookLeadPayload = {
   lastName: string
   email: string
   phone: string
+  address: string
   source: string
   submittedAt: string
   submissionType: 'appointment' | 'form_only'

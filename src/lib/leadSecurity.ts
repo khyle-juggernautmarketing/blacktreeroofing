@@ -12,6 +12,7 @@ const MAX = {
   fullName: 120,
   email: 254,
   phone: 32,
+  address: 200,
 } as const
 
 const CONTROL_CHARS = /[\u0000-\u001F\u007F]/g
@@ -48,8 +49,9 @@ export function validateLeadBody(body: unknown):
   const fullName = sanitizeText(raw.fullName, MAX.fullName)
   const email = sanitizeText(raw.email, MAX.email).toLowerCase()
   const phone = sanitizeText(raw.phone, MAX.phone)
+  const address = sanitizeText(raw.address, MAX.address)
 
-  if (!service || !propertyType || !timeline || !fullName || !email || !phone) {
+  if (!service || !propertyType || !timeline || !fullName || !email || !phone || !address) {
     return { ok: false, error: 'Missing required fields' }
   }
 
@@ -72,9 +74,13 @@ export function validateLeadBody(body: unknown):
     return { ok: false, error: 'Invalid phone number' }
   }
 
+  if (address.length < 5) {
+    return { ok: false, error: 'Please enter a valid address.' }
+  }
+
   return {
     ok: true,
-    data: { service, propertyType, timeline, fullName, email, phone },
+    data: { service, propertyType, timeline, fullName, email, phone, address },
   }
 }
 
