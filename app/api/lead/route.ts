@@ -1,25 +1,14 @@
 import { NextResponse } from 'next/server'
-import { signJwtHS256 } from '@/lib/jwt'
-import { isRateLimited, rateLimitKey, validateLeadBody } from '@/lib/leadSecurity'
+import { bookSlot, releaseSlot } from '@/lib/bookingsStore'
+import { isRateLimited, rateLimitKey, validateLeadSubmission } from '@/lib/leadSecurity'
+import {
+  buildAppointmentFields,
+  getWebhookConfig,
+  sendLeadToWebhook,
+  splitFullName,
+} from '@/lib/webhook'
 
-const WEBHOOK_TIMEOUT_MS = 25_000
 const MAX_BODY_BYTES = 8_192
-
-function splitFullName(fullName: string) {
-  const space = fullName.indexOf(' ')
-  if (space === -1) return { firstName: fullName, lastName: '' }
-  return {
-    firstName: fullName.slice(0, space),
-    lastName: fullName.slice(space + 1).trim(),
-  }
-}
-
-function getWebhookConfig() {
-  const url = process.env.N8N_WEBHOOK_URL?.trim()
-  const jwtSecret = process.env.N8N_JWT_SECRET?.trim()
-  if (!url || !jwtSecret) return null
-  return { url, jwtSecret }
-}
 
 export async function POST(request: Request) {
   const config = getWebhookConfig()
@@ -59,13 +48,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
     }
 
-    const validated = validateLeadBody(body)
+    const validated = validateLeadSubmission(body)
     if (!validated.ok) {
       return NextResponse.json({ error: validated.error }, { status: 400 })
     }
 
     const { fullName, email, phone, service, propertyType, timeline } = validated.data
     const { firstName, lastName } = splitFullName(fullName)
+
+    if (validated.mode === 'appointment' && validated.appointment) {
+      const booked = bookSlot({
+        date: validated.appointment.date,
+        slotId: validated.appointment.slotId,
+        email,
+        fullName,
+      })
+      if (!booked.ok) {
+        return NextResponse.json({ error: booked.error }, { status: 409 })
+      }
+    }
 
     const payload = {
       service,
@@ -78,57 +79,42 @@ export async function POST(request: Request) {
       phone,
       source: 'blacktree-landing',
       submittedAt: new Date().toISOString(),
+      submissionType: validated.mode,
+      ...(validated.mode === 'appointment' && validated.appointment
+        ? {
+            appointment: buildAppointmentFields(
+              validated.appointment.date,
+              validated.appointment.slotId,
+              validated.appointment.displayDate,
+            ),
+          }
+        : {}),
     }
 
-    const token = signJwtHS256(config.jwtSecret, { sub: 'lead-form' })
-
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), WEBHOOK_TIMEOUT_MS)
-
-    let res: Response
-    try {
-      res = await fetch(config.url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json, text/plain, */*',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-        cache: 'no-store',
-      })
-    } catch (e) {
-      clearTimeout(timeout)
-      const aborted = e instanceof Error && e.name === 'AbortError'
-      console.error('n8n webhook fetch failed', aborted ? 'timeout' : e)
+    const result = await sendLeadToWebhook(config, payload)
+    if (!result.ok) {
+      if (validated.mode === 'appointment' && validated.appointment) {
+        releaseSlot(validated.appointment.date, validated.appointment.slotId)
+      }
       return NextResponse.json(
         {
-          error: aborted
+          error: result.aborted
             ? 'Request timed out. Please try again or call us.'
             : 'Could not reach booking service. Please try again.',
         },
-        { status: 503 },
-      )
-    } finally {
-      clearTimeout(timeout)
-    }
-
-    if (!res.ok) {
-      console.error('n8n webhook failed', res.status)
-      return NextResponse.json(
-        { error: 'Booking service returned an error. Please try again or call us.' },
-        { status: 502 },
+        { status: result.aborted ? 503 : 502 },
       )
     }
 
     return NextResponse.json(
-      { ok: true },
       {
-        headers: {
-          'Cache-Control': 'no-store',
-        },
+        ok: true,
+        submissionType: validated.mode,
+        ...(validated.mode === 'appointment' && validated.appointment
+          ? { appointment: payload.appointment }
+          : {}),
       },
+      { headers: { 'Cache-Control': 'no-store' } },
     )
   } catch (err) {
     console.error('Lead API error', err)

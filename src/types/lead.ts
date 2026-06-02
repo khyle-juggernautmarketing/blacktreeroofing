@@ -21,6 +21,12 @@ export type Service = (typeof SERVICES)[number]
 export type PropertyType = (typeof PROPERTY_TYPES)[number]
 export type Timeline = (typeof TIMELINES)[number]
 
+export interface AppointmentSelection {
+  date: string
+  slotId: string
+  slotLabel: string
+}
+
 export interface LeadFormData {
   service: Service | ''
   propertyType: PropertyType | ''

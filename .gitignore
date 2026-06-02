@@ -29,4 +29,8 @@ yarn-error.log*
 # env files
 .env*.local
 
+# booking data (local persistence)
+/data/bookings.json
+
 # typescript
+.vercel

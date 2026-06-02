@@ -1,3 +1,10 @@
+import {
+  formatDisplayDate,
+  isValidBookableDate,
+  isValidSlotForDate,
+  SLOTS,
+  type SlotId,
+} from '@/lib/booking'
 import type { LeadFormData } from '@/types/lead'
 import { PROPERTY_TYPES, SERVICES, TIMELINES } from '@/types/lead'
 
@@ -68,6 +75,84 @@ export function validateLeadBody(body: unknown):
   return {
     ok: true,
     data: { service, propertyType, timeline, fullName, email, phone },
+  }
+}
+
+export type LeadSubmissionMode = 'appointment' | 'form_only'
+
+export function validateLeadSubmission(body: unknown):
+  | {
+      ok: true
+      data: LeadFormData & { website?: string }
+      mode: LeadSubmissionMode
+      appointment?: { date: string; slotId: SlotId; displayDate: string }
+    }
+  | { ok: false; error: string } {
+  const base = validateLeadBody(body)
+  if (!base.ok) return base
+
+  const raw = body as Record<string, unknown>
+  const formOnly = raw.formOnly === true
+  const appointmentRaw = raw.appointment
+
+  if (formOnly) {
+    if (appointmentRaw) {
+      return { ok: false, error: 'Invalid submission' }
+    }
+    return { ok: true, data: base.data, mode: 'form_only' }
+  }
+
+  if (!appointmentRaw || typeof appointmentRaw !== 'object') {
+    return { ok: false, error: 'Please select an appointment time.' }
+  }
+
+  const appt = appointmentRaw as Record<string, unknown>
+  const date = sanitizeText(appt.date, 10)
+  const slotId = sanitizeText(appt.slotId, 8)
+
+  if (!date || !slotId) {
+    return { ok: false, error: 'Invalid appointment selection.' }
+  }
+  if (!isValidBookableDate(date)) {
+    return { ok: false, error: 'Selected date is not available.' }
+  }
+  if (!isValidSlotForDate(date, slotId)) {
+    return { ok: false, error: 'Selected time slot is not available.' }
+  }
+
+  return {
+    ok: true,
+    data: base.data,
+    mode: 'appointment',
+    appointment: {
+      date,
+      slotId: slotId as SlotId,
+      displayDate: formatDisplayDate(date),
+    },
+  }
+}
+
+export function validateAppointmentFields(date: unknown, slotId: unknown):
+  | { ok: true; date: string; slotId: SlotId; slotLabel: string }
+  | { ok: false; error: string } {
+  const dateStr = sanitizeText(date, 10)
+  const slot = sanitizeText(slotId, 8)
+
+  if (!dateStr || !slot) {
+    return { ok: false, error: 'Invalid appointment selection.' }
+  }
+  if (!isValidBookableDate(dateStr)) {
+    return { ok: false, error: 'Selected date is not available.' }
+  }
+  if (!isValidSlotForDate(dateStr, slot)) {
+    return { ok: false, error: 'Selected time slot is not available.' }
+  }
+
+  return {
+    ok: true,
+    date: dateStr,
+    slotId: slot as SlotId,
+    slotLabel: SLOTS[slot as SlotId].label,
   }
 }
 

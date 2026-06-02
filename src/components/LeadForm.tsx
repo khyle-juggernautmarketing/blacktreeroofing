@@ -2,8 +2,10 @@
 
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { CheckCircle2, Loader2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import type { FormEvent } from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { BookingCalendar } from '@/components/BookingCalendar'
 import {
   PROPERTY_OPTIONS,
   SERVICE_OPTIONS,
@@ -13,11 +15,16 @@ import {
 import type { LeadFormData } from '@/types/lead'
 import { initialLeadForm } from '@/types/lead'
 
+const FORM_PENDING_KEY = 'blacktree-form-pending'
+const WEBHOOK_SENT_KEY = 'blacktree-webhook-sent'
+const FORM_ONLY_DELAY_MS = 10 * 60 * 1000
+
 const STEPS = [
   { id: 1, title: 'What do you need help with?' },
   { id: 2, title: 'What type of property?' },
   { id: 3, title: 'How soon do you need service?' },
   { id: 4, title: 'Almost done! Enter your details:' },
+  { id: 5, title: 'Pick a date & time for your appointment' },
 ]
 
 function useStepAdvanceDelay() {
@@ -99,33 +106,92 @@ function OptionGrid<T extends string>({
   )
 }
 
-function SuccessMarks() {
-  return (
-    <svg className="h-28 w-28 text-[#48D1CC]" viewBox="0 0 64 64" aria-hidden>
-      <circle cx="32" cy="32" r="28" fill="rgba(72,209,204,0.12)" />
-      <path
-        className="animate-check-stroke"
-        stroke="currentColor"
-        strokeWidth="3.5"
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M18 34l8 8 20-22"
-      />
-    </svg>
-  )
-}
-
 export function LeadForm() {
+  const router = useRouter()
   const prefersReducedMotion = useReducedMotion()
   const [step, setStep] = useState(1)
   const [data, setData] = useState<LeadFormData>(initialLeadForm)
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle')
+  const [status, setStatus] = useState<'idle' | 'loading'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
   const [honeypot, setHoneypot] = useState('')
   const stepAdvanceDelayMs = useStepAdvanceDelay()
+  const formOnlyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pendingPayloadRef = useRef<(LeadFormData & { website: string }) | null>(null)
 
   const progress = (step / STEPS.length) * 100
+
+  const clearFormOnlyTimer = useCallback(() => {
+    if (formOnlyTimerRef.current) {
+      clearTimeout(formOnlyTimerRef.current)
+      formOnlyTimerRef.current = null
+    }
+  }, [])
+
+  const sendFormOnlyWebhook = useCallback(async () => {
+    if (typeof window === 'undefined') return
+    if (sessionStorage.getItem(WEBHOOK_SENT_KEY)) return
+    const payload = pendingPayloadRef.current
+    if (!payload) return
+
+    try {
+      await fetch('/api/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...payload, formOnly: true }),
+      })
+      sessionStorage.setItem(WEBHOOK_SENT_KEY, 'true')
+    } catch {
+      // Silent fallback — user may still complete booking
+    }
+  }, [])
+
+  const scheduleFormOnlyWebhook = useCallback(
+    (payload: LeadFormData & { website: string }) => {
+      clearFormOnlyTimer()
+      pendingPayloadRef.current = payload
+      sessionStorage.setItem(
+        FORM_PENDING_KEY,
+        JSON.stringify({ payload, startedAt: Date.now() }),
+      )
+      sessionStorage.removeItem(WEBHOOK_SENT_KEY)
+
+      formOnlyTimerRef.current = setTimeout(() => {
+        void sendFormOnlyWebhook()
+      }, FORM_ONLY_DELAY_MS)
+    },
+    [clearFormOnlyTimer, sendFormOnlyWebhook],
+  )
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const pendingRaw = sessionStorage.getItem(FORM_PENDING_KEY)
+    const webhookSent = sessionStorage.getItem(WEBHOOK_SENT_KEY)
+    if (!pendingRaw || webhookSent) return
+
+    try {
+      const pending = JSON.parse(pendingRaw) as {
+        payload: LeadFormData & { website: string }
+        startedAt: number
+      }
+      pendingPayloadRef.current = pending.payload
+      setData(pending.payload)
+      setStep(5)
+
+      const elapsed = Date.now() - pending.startedAt
+      const remaining = FORM_ONLY_DELAY_MS - elapsed
+      if (remaining <= 0) {
+        void sendFormOnlyWebhook()
+      } else {
+        formOnlyTimerRef.current = setTimeout(() => {
+          void sendFormOnlyWebhook()
+        }, remaining)
+      }
+    } catch {
+      sessionStorage.removeItem(FORM_PENDING_KEY)
+    }
+
+    return () => clearFormOnlyTimer()
+  }, [clearFormOnlyTimer, sendFormOnlyWebhook])
 
   const advance = useCallback(
     (updater: (d: LeadFormData) => LeadFormData, next: number) => {
@@ -150,7 +216,7 @@ export function LeadForm() {
     advance((d) => ({ ...d, timeline }), 4)
   }
 
-  const submit = async (e: FormEvent) => {
+  const submitDetails = (e: FormEvent) => {
     e.preventDefault()
     setErrorMsg('')
     if (!data.fullName.trim() || !data.email.trim() || !data.phone.trim()) {
@@ -174,37 +240,50 @@ export function LeadForm() {
       email: data.email.trim(),
       website: honeypot,
     }
+
+    scheduleFormOnlyWebhook(payload)
+    setStep(5)
+  }
+
+  const confirmAppointment = async (date: string, slotId: string, slotLabel: string) => {
+    setErrorMsg('')
+    const payload = pendingPayloadRef.current ?? {
+      ...data,
+      fullName: data.fullName.trim(),
+      email: data.email.trim(),
+      website: honeypot,
+    }
+
     setStatus('loading')
+    clearFormOnlyTimer()
+
     try {
       const res = await fetch('/api/lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          ...payload,
+          appointment: { date, slotId },
+        }),
       })
+
       if (!res.ok) {
         const j = await res.json().catch(() => ({}))
         setStatus('idle')
-        setErrorMsg(typeof j.error === 'string' ? j.error : 'Could not send your request. Please try again or call us.')
+        setErrorMsg(typeof j.error === 'string' ? j.error : 'Could not confirm your appointment. Please try again.')
         return
       }
 
-      const diagnostic = [
-        {
-          event: 'lead_submit_success',
-          at: new Date().toISOString(),
-          service: payload.service,
-          propertyType: payload.propertyType,
-          timeline: payload.timeline,
-          fullName: payload.fullName,
-          email: payload.email,
-          phone: payload.phone,
-        },
-      ]
-      console.log('[BlackTree LeadForm] diagnostic trace', diagnostic)
+      sessionStorage.setItem(WEBHOOK_SENT_KEY, 'true')
+      sessionStorage.removeItem(FORM_PENDING_KEY)
+      pendingPayloadRef.current = null
 
-      setData(initialLeadForm)
-      setStep(1)
-      setStatus('success')
+      const params = new URLSearchParams({
+        date,
+        slot: slotLabel,
+        name: payload.fullName,
+      })
+      router.push(`/thank-you?${params.toString()}`)
     } catch {
       setStatus('idle')
       setErrorMsg('Something went wrong. Please try again or call us directly.')
@@ -212,29 +291,6 @@ export function LeadForm() {
   }
 
   const motionDur = prefersReducedMotion ? 0 : 0.35
-
-  if (status === 'success') {
-    return (
-      <div className="animate-form-success flex min-h-[360px] flex-col items-center justify-center px-2 text-center">
-        <SuccessMarks />
-        <h3 className="mt-6 text-xl font-bold text-slate-900">You&apos;re on the list</h3>
-        <p className="mt-2 max-w-sm text-slate-600">
-          We&apos;ll reach out shortly during business hours. For urgent leaks, call{' '}
-          <a href="tel:+12082745706" className="font-semibold text-[#48D1CC] hover:underline">
-            208-274-5706
-          </a>
-          .
-        </p>
-        <button
-          type="button"
-          onClick={() => setStatus('idle')}
-          className="mt-8 min-h-12 rounded-xl border-2 border-slate-200 px-6 text-sm font-semibold text-slate-800 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#48D1CC] hover:bg-[#48D1CC]/5 motion-reduce:hover:translate-y-0"
-        >
-          Submit another estimate
-        </button>
-      </div>
-    )
-  }
 
   return (
     <div id="contact" className="w-full">
@@ -288,7 +344,7 @@ export function LeadForm() {
             />
           )}
           {step === 4 && (
-            <form onSubmit={submit} className="space-y-4">
+            <form onSubmit={submitDetails} className="space-y-4">
               <label className="sr-only" aria-hidden>
                 Website
                 <input
@@ -343,22 +399,22 @@ export function LeadForm() {
                 disabled={status === 'loading'}
                 className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#48D1CC] text-base font-semibold text-white shadow-md transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-[1.01] hover:shadow-[0_0_25px_rgba(72,209,204,0.5)] disabled:opacity-70 motion-reduce:translate-y-0 motion-reduce:scale-100 motion-reduce:hover:shadow-md sm:text-sm"
               >
-                {status === 'loading' ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
-                    Sending...
-                  </>
-                ) : (
-                  'Get My Free Roofing Estimate'
-                )}
+                Continue to Schedule Appointment
               </button>
               <p className="text-center text-xs text-slate-500">🔒 Your info is safe. No spam, ever.</p>
             </form>
           )}
+          {step === 5 && (
+            <BookingCalendar
+              onConfirm={confirmAppointment}
+              loading={status === 'loading'}
+              errorMsg={errorMsg}
+            />
+          )}
         </motion.div>
       </AnimatePresence>
 
-      {step > 1 && (
+      {step > 1 && step < 5 && (
         <button
           type="button"
           onClick={() => setStep((s) => Math.max(1, s - 1))}
